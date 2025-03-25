@@ -6,9 +6,9 @@ pipeline {
     }
     environment {
         SCANNER_HOME = tool 'sonar-scanner'
-        DOCKER_IMAGE = 'suneel717/zomato:latest'
+        DOCKER_IMAGE = 'suneel717/sumato:latest'  // Changed Docker image to 'sumato'
         EKS_CLUSTER_NAME = 'ram-eks'
-        AWS_REGION = 'us-east-2'  // Fixed the quote mark here
+        AWS_REGION = 'us-east-2'
     }
     stages {
         stage("clean workspace") {
@@ -24,17 +24,17 @@ pipeline {
         stage("Sonarqube Analysis") {
             steps {
                 withSonarQubeEnv('sonar-server') {
-                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=zomato \
-                    -Dsonar.projectKey=zomato '''
+                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=sumato \
+                    -Dsonar.projectKey=sumato '''
                 }
             }
         }
         stage("Code Quality Gate") {
             steps {
                 script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token' 
+                    waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token'
                 }
-            } 
+            }
         }
         stage("Install NPM Dependencies") {
             steps {
@@ -53,15 +53,15 @@ pipeline {
         }
         stage("Build Docker Image") {
             steps {
-                sh "docker build -t zomato ."
+                sh "docker build -t sumato ."
             }
         }
         stage("Tag & Push to DockerHub") {
             steps {
                 script {
                     withDockerRegistry(credentialsId: 'docker') {
-                        sh "docker tag zomato suneel717/zomato:latest "
-                        sh "docker push suneel717/zomato:latest "
+                        sh "docker tag sumato suneel717/sumato:latest"
+                        sh "docker push suneel717/sumato:latest"
                     }
                 }
             }
@@ -70,16 +70,29 @@ pipeline {
             steps {
                 script {
                     withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
-                        sh 'docker-scout quickview suneel717/zomato:latest'
-                        sh 'docker-scout cves suneel717/zomato:latest'
-                        sh 'docker-scout recommendations suneel717/zomato:latest'
+                        sh 'docker-scout quickview suneel717/sumato:latest'
+                        sh 'docker-scout cves suneel717/sumato:latest'
+                        sh 'docker-scout recommendations suneel717/sumato:latest'
                     }
                 }
             }
         }
         stage("Deploy to Container") {
             steps {
-                sh 'docker run -d --name zomato -p 3000:3000 suneel717/zomato:latest'
+                script {
+                    // Check if container already exists with name 'sumato'
+                    def containerExists = sh(script: "docker ps -a --filter 'name=sumato' --quiet", returnStdout: true).trim()
+
+                    if (containerExists) {
+                        // Stop the existing container named 'sumato'
+                        sh "docker stop sumato"
+                        // Remove the existing container named 'sumato'
+                        sh "docker rm sumato"
+                    }
+
+                    // Run the new container with the name 'sumato'
+                    sh 'docker run -d --name sumato -p 3000:3000 suneel717/sumato:latest'
+                }
             }
         }
         stage('Deploy to EKS Cluster') {
