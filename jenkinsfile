@@ -91,7 +91,7 @@ pipeline {
                     }
 
                     // Run the new container with the name 'sumato'
-                    sh 'docker run -d --name sumato -p 3000:3000 suneel717/sumato:latest'
+                    sh 'docker run -d --name suneel -p 3001:3000 suneel717/sumato:latest'
                 }
             }
         }
