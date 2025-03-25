@@ -6,6 +6,9 @@ pipeline {
     }
     environment {
         SCANNER_HOME=tool 'sonar-scanner'
+        DOCKER_IMAGE = 'suneel717/zomato:latest'
+        EKS_CLUSTER_NAME = 'ram-eks'
+        AWS_REGION = us-east-2'
     }
     stages {
         stage ("clean workspace") {
