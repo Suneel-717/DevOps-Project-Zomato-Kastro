@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: zomato
+  name: sumato  # Changed from 'zomato' to 'sumato'
   labels:
-    app: zomato
+    app: sumato  # Changed from 'zomato' to 'sumato'
 spec:
   type: NodePort
   ports:
@@ -11,4 +11,4 @@ spec:
     targetPort: 3000
     nodePort: 30001
   selector:
-    app: zomato
+    app: sumato  # Changed from 'zomato' to 'sumato'
